@@ -2,6 +2,7 @@ import logging
 import os
 
 from pyrogram import Client, filters
+from pyrogram import enums
 from pyrogram.types import (
     CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup,
     KeyboardButton, Message, ReplyKeyboardMarkup,
@@ -78,7 +79,7 @@ def register_start(bot: Client):
             "📸 Instagram (cookie kerak)\n\n"
             "Havola yuboring → sifat tanlang!\n\n"
             "/help  /stats  /stop",
-            parse_mode="html",
+            parse_mode=enums.ParseMode.HTML,
             reply_markup=_home_kb(),
         )
 
@@ -99,7 +100,7 @@ def register_help(bot: Client):
             "<b>Instagram:</b> Railway → <code>INSTAGRAM_COOKIES</code>\n"
             "<b>YouTube:</b> Railway → <code>YOUTUBE_COOKIES</code> (ixtiyoriy)\n\n"
             "<b>To'xtatish:</b> /stop yoki 🛑 Toxtat tugmasi",
-            parse_mode="html",
+            parse_mode=enums.ParseMode.HTML,
             reply_markup=_home_kb(),
         )
 
@@ -115,7 +116,7 @@ def register_stats(bot: Client):
             f"✅ Muvaffaqiyatli: <b>{s.get('done', 0)}</b>\n"
             f"❌ Xatolik:        <b>{s.get('failed', 0)}</b>\n"
             f"⏳ Navbatda:       <b>{q}</b>",
-            parse_mode="html",
+            parse_mode=enums.ParseMode.HTML,
             reply_markup=_home_kb(),
         )
 
@@ -161,7 +162,7 @@ def register_quick_actions(bot: Client):
             f"✅ Muvaffaqiyatli: <b>{s.get('done', 0)}</b>\n"
             f"❌ Xatolik:        <b>{s.get('failed', 0)}</b>\n"
             f"⏳ Navbatda:       <b>{q}</b>",
-            parse_mode="html",
+            parse_mode=enums.ParseMode.HTML,
             reply_markup=_home_kb(),
         )
 
@@ -170,7 +171,7 @@ def register_quick_actions(bot: Client):
         removed = await download_queue.clear_user_queue(msg.from_user.id)
         await msg.reply(
             f"🧹 Navbat tozalandi: <b>{removed}</b> ta o'chirildi",
-            parse_mode="html",
+            parse_mode=enums.ParseMode.HTML,
             reply_markup=_home_kb(),
         )
 
@@ -192,7 +193,7 @@ def register_link_handler(bot: Client, user: Client):
             platform = detect_platform(text)
             await msg.reply(
                 f"{platform}\n<b>Sifat tanlang:</b>",
-                parse_mode="html",
+                parse_mode=enums.ParseMode.HTML,
                 reply_markup=_ext_keyboard(text),
             )
             return
@@ -205,12 +206,12 @@ def register_link_handler(bot: Client, user: Client):
                 if not parsed:
                     await msg.reply(
                         f"❌ Noto'g'ri havola:\n<code>{link}</code>",
-                        parse_mode="html",
+                        parse_mode=enums.ParseMode.HTML,
                     )
                     continue
                 await msg.reply(
                     "📥 Telegram havolasi\n<b>Qanday yuklab olmoqchisiz?</b>",
-                    parse_mode="html",
+                    parse_mode=enums.ParseMode.HTML,
                     reply_markup=_tg_keyboard(link),
                 )
             return
@@ -221,7 +222,7 @@ def register_link_handler(bot: Client, user: Client):
             "<b>Misol:</b>\n"
             "<code>https://youtube.com/watch?v=...</code>\n"
             "<code>https://t.me/kanal/100</code>",
-            parse_mode="html",
+            parse_mode=enums.ParseMode.HTML,
         )
 
     @bot.on_callback_query(cb_filter())
@@ -240,7 +241,7 @@ def register_link_handler(bot: Client, user: Client):
             platform = detect_platform(url)
             await cb.message.edit_text(
                 f"{platform} — <b>{labels.get(quality, quality)}</b> navbatga qo'shildi ⏳",
-                parse_mode="html",
+                parse_mode=enums.ParseMode.HTML,
             )
             await cb.answer()
             await _enqueue_ext(user, cb.message, url, quality)
@@ -251,7 +252,7 @@ def register_link_handler(bot: Client, user: Client):
             label = "🎬 Video" if mode == "video" else "🎵 Audio"
             await cb.message.edit_text(
                 f"📥 Telegram — <b>{label}</b> navbatga qo'shildi ⏳",
-                parse_mode="html",
+                parse_mode=enums.ParseMode.HTML,
             )
             await cb.answer()
             parsed = parse_link(url)
@@ -269,7 +270,7 @@ def register_link_handler(bot: Client, user: Client):
 async def _enqueue_tg(user, msg, parsed, link, audio_only=False):
     q = download_queue.queue_size(msg.from_user.id)
     if q > 0:
-        await msg.reply(f"⏳ Navbatda <b>{q + 1}</b>-o'rinda", parse_mode="html")
+        await msg.reply(f"⏳ Navbatda <b>{q + 1}</b>-o'rinda", parse_mode=enums.ParseMode.HTML)
 
     async def task():
         await _process_tg(user, msg, parsed, link, audio_only)
@@ -280,7 +281,7 @@ async def _enqueue_tg(user, msg, parsed, link, audio_only=False):
 async def _enqueue_ext(user, msg, url, quality):
     q = download_queue.queue_size(msg.from_user.id)
     if q > 0:
-        await msg.reply(f"⏳ Navbatda <b>{q + 1}</b>-o'rinda", parse_mode="html")
+        await msg.reply(f"⏳ Navbatda <b>{q + 1}</b>-o'rinda", parse_mode=enums.ParseMode.HTML)
 
     async def task():
         await _process_ext(user, msg, url, quality)
@@ -307,7 +308,7 @@ async def _process_tg(user, bot_msg, parsed, link, audio_only=False):
             await status.edit("❌ Media topilmadi.")
             return
         if mtype == "text":
-            await status.edit(f"📝 <b>Xabar:</b>\n\n{file_path}", parse_mode="html")
+            await status.edit(f"📝 <b>Xabar:</b>\n\n{file_path}", parse_mode=enums.ParseMode.HTML)
             return
         if mtype == "empty":
             await status.edit("❌ Xabar bo'sh.")
@@ -374,7 +375,7 @@ async def _show_error(status_msg: Message, err: str):
     try:
         await status_msg.edit(
             f"❌ <b>Xatolik:</b>\n<code>{hint}</code>",
-            parse_mode="html",
+            parse_mode=enums.ParseMode.HTML,
         )
     except Exception:
         pass
